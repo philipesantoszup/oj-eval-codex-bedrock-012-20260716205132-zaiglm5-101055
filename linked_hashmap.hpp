@@ -42,7 +42,6 @@ private:
     HashNode **buckets;
     size_t bucket_count_;
     size_t element_count_;
-    float load_factor_;
     
     ListNode *head_; // dummy head for doubly-linked list
     ListNode *tail_; // dummy tail for doubly-linked list
@@ -87,10 +86,9 @@ private:
     }
     
     void init() {
-        bucket_count_ = 16;
+        bucket_count_ = 64;  // Start with larger bucket count
         buckets = new HashNode*[bucket_count_]();
         element_count_ = 0;
-        load_factor_ = 0.75f;
         
         head_ = new ListNode();
         tail_ = new ListNode();
@@ -99,7 +97,6 @@ private:
     }
     
     void destroy_contents() {
-        // Delete all hash nodes
         for (size_t i = 0; i < bucket_count_; ++i) {
             HashNode *node = buckets[i];
             while (node) {
@@ -110,7 +107,6 @@ private:
             buckets[i] = nullptr;
         }
         
-        // Delete all list nodes and data
         ListNode *cur = head_->next;
         while (cur != tail_) {
             ListNode *next = cur->next;
@@ -134,7 +130,6 @@ private:
         bucket_count_ = other.bucket_count_;
         buckets = new HashNode*[bucket_count_]();
         element_count_ = 0;
-        load_factor_ = other.load_factor_;
         
         head_ = new ListNode();
         tail_ = new ListNode();
@@ -360,7 +355,6 @@ public:
             node = node->next;
         }
         
-        // Insert new element
         value_type *data = new value_type(key, T());
         
         ListNode *ln = new ListNode(data);
@@ -375,7 +369,7 @@ public:
         
         element_count_++;
         
-        if ((float)element_count_ / bucket_count_ >= load_factor_) {
+        if (element_count_ >= bucket_count_) {
             resize();
         }
         
@@ -424,7 +418,6 @@ public:
             node = node->next;
         }
         
-        // Create new element
         value_type *data = new value_type(value);
         
         ListNode *ln = new ListNode(data);
@@ -439,7 +432,7 @@ public:
         
         element_count_++;
         
-        if ((float)element_count_ / bucket_count_ >= load_factor_) {
+        if (element_count_ >= bucket_count_) {
             resize();
         }
         
@@ -453,7 +446,6 @@ public:
         
         ListNode *ln = pos.node_;
         
-        // Remove from hash table
         size_t idx = get_bucket_index(ln->data->first);
         HashNode *hn = buckets[idx];
         HashNode *prev = nullptr;
@@ -471,7 +463,6 @@ public:
             hn = hn->next;
         }
         
-        // Remove from linked list
         ln->prev->next = ln->next;
         ln->next->prev = ln->prev;
         
